@@ -1,6 +1,9 @@
-var staticCacheName = 'restaurant-reviews-v3';
+const staticCacheName = 'restaurant-reviews-v3';
 
-let urlToCache = [
+self.addEventListener('install', function(event) {
+ event.waitUntil(
+  caches.open(staticCacheName).then(function(cache) {
+   return cache.addAll([
     '/',
     './index.html',
     './restaurant.html',
@@ -18,38 +21,31 @@ let urlToCache = [
     './img/10.jpg',
     './js/main.js',
     './js/restaurant_info.js',
-    './js/dbhelper.js',
-
-];
-
-self.addEventListener('install', function(e){
-	e.waitUntil(
-		caches.open(staticCacheName).then(function(cache){
-			cache.addAll(urlToCache);
-		})	
-	);
+    './js/dbhelper.js'
+   ]);
+  })
+ );
 });
 
-self.addEventListener('fetch', function(e){
-	e.respondWith(
-		caches.match(e.request).then(function(response){
-			if(response) return response;
-			return fetch(e.request);
-		})
-	);
+self.addEventListener('activate', function(e) {
+ e.waitUntil(
+  caches.keys().then(function(cacheNames) {
+   return Promise.all(
+    cacheNames.filter(function(cacheName) {
+     return cacheName.startsWith('restaurant-') && cacheName != staticCacheName
+    }).map(function(cacheName) {
+     return caches.delete(cacheName);
+    })
+   );
+  })
+ );
 });
 
-self.addEventListener('activate', function(e){
-	e.waitUntil(
-		caches.keys().then(function(cacheNames){
-			return Promise.all(
-				cacheNames.filter(function(cacheName){
-				return cacheName.startsWith('restaurant-') && cacheName != staticCacheName
-			}).map(function(cacheName){
-				return caches.delete(cacheName);
-				})
-			);
-
-		})
-	);
+self.addEventListener('fetch', function(e) {
+ e.respondWith(
+  caches.match(e.request).then(function(response) {
+   console.log(event.response, response);
+   return response || fetch(event.request);
+  })
+ );
 });
