@@ -47,7 +47,7 @@ self.addEventListener('fetch', function(e) {
    if (response) {
     return response;
     }
-    return fetch(event.request);
+    return fetch(e.request);
    }                        
   )
  );
